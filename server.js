@@ -865,18 +865,26 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`======================================================================`);
-  console.log(`   HIREFLOW + OMNITALENT: LIVE ENTERPRISE ATS & SOCIAL PLATFORM`);
-  console.log(`======================================================================`);
-  console.log(`Server running at: http://localhost:${PORT}`);
-  console.log(`REST API active on: http://localhost:${PORT}/api/v1/health`);
-  console.log(`Serving UI from  : ${PUBLIC_DIR}`);
-  console.log(`======================================================================\n`);
-});
+// Only listen when executed directly via CLI (not when required by tests or serverless runtimes like Vercel)
+if (process.env.VERCEL !== '1' && require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`======================================================================`);
+    console.log(`   HIREFLOW + OMNITALENT: LIVE ENTERPRISE ATS & SOCIAL PLATFORM`);
+    console.log(`======================================================================`);
+    console.log(`Server running at: http://localhost:${PORT}`);
+    console.log(`REST API active on: http://localhost:${PORT}/api/v1/health`);
+    console.log(`Serving UI from  : ${PUBLIC_DIR}`);
+    console.log(`======================================================================\n`);
+  });
+}
 
 if (typeof module !== 'undefined') {
-  module.exports = { server, state, calculateShortlistScores, parseResumeNLP };
+  // Support both direct Node.js require and Vercel serverless function export
+  module.exports = server;
+  module.exports.server = server;
+  module.exports.state = state;
+  module.exports.calculateShortlistScores = calculateShortlistScores;
+  module.exports.parseResumeNLP = parseResumeNLP;
 }
 
 
