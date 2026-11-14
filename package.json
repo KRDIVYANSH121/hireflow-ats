@@ -1,0 +1,22 @@
+{
+  "name": "hireflow-omnitalent",
+  "version": "1.0.0",
+  "description": "OmniTalent: Full Lifecycle ATS + Professional Social Network Fusion & 6-Stage AI Hiring Engine",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/run-all-tests.js"
+  },
+  "keywords": [
+    "ats",
+    "social-network",
+    "recruitment",
+    "ai-matching",
+    "glassmorphism",
+    "kanban",
+    "hireflow"
+  ],
+  "author": "HireFlow Team",
+  "license": "MIT"
+}
+
