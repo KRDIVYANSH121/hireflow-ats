@@ -4467,6 +4467,11 @@
     getCandidateFacingStatus(stage) {
       return getCandidateFacingStatus(stage);
     },
+    switchMainTab(targetViewId) {
+      if (typeof switchMainTab === 'function') {
+        switchMainTab(targetViewId);
+      }
+    },
     switchWorkspace(workspace) {
       if (state.currentUser?.role === 'CANDIDATE' && workspace !== 'candidate') {
         showToast('Recruiter and Admin workspaces are restricted to authorized personnel');
