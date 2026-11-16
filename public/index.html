@@ -481,6 +481,13 @@
       </button>
     </nav>
 
+    <!-- Header Recruiter Sub-Nav -->
+    <nav aria-label="Recruiter Views" class="hidden md:flex items-center p-1 rounded-lg app-elevated gap-1">
+      <button onclick="HireFlowApp.switchMainTab('recruiter-pipeline-view')" class="px-2.5 py-1.5 rounded-md text-xs font-medium transition-all text-slate-400 hover:text-white">Pipeline</button>
+      <button onclick="HireFlowApp.switchMainTab('recruiter-studio-view')" class="px-2.5 py-1.5 rounded-md text-xs font-medium transition-all text-slate-400 hover:text-white">Studio</button>
+      <button onclick="HireFlowApp.switchMainTab('workflow-view')" class="px-2.5 py-1.5 rounded-md text-xs font-medium transition-all text-slate-400 hover:text-white">Workflow</button>
+    </nav>
+
     <!-- Right: Command Palette, Quick Actions, Theme, Auth Session -->
     <div class="flex items-center gap-2">
       <!-- Command Palette Trigger (Linear Style) -->
@@ -562,7 +569,7 @@
   <!-- ===================================================================== -->
   <!-- INTERACTIVE 6-STEP END-TO-END WORKFLOW RIBBON                         -->
   <!-- ===================================================================== -->
-  <section class="app-panel border-t-0 border-x-0 px-3 sm:px-5 py-2 overflow-x-auto no-print">
+  <section id="workflow-ribbon-section" data-roles="RECRUITER_HR,RECRUITER_ADMIN" class="app-panel border-t-0 border-x-0 px-3 sm:px-5 py-2 overflow-x-auto no-print">
     <div class="max-w-[1600px] mx-auto flex items-center justify-between gap-2 min-w-max">
       <div class="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-slate-400 mr-2">
         <i class="ph ph-flow-arrow brand-text text-sm"></i>
@@ -1005,7 +1012,7 @@
             <!-- Visual Balancing Weight Bar (DOM-05 Verbatim Text Contract) -->
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-semibold text-slate-300">Scoring Weight Distribution</label>
-              <div class="flex h-3 rounded-full overflow-hidden bg-slate-200 dark:bg-white/10 text-[10px] font-bold text-white text-center leading-3">
+              <div class="rule-bar flex h-3 rounded-full overflow-hidden bg-slate-200 dark:bg-white/10 text-[10px] font-bold text-white text-center leading-3">
                 <div class="rule-seg rule-seg-core bg-indigo-500" style="width: 70%">70% Core</div>
                 <div class="rule-seg rule-seg-pref bg-purple-500" style="width: 20%">20% Preferred</div>
                 <div class="rule-seg rule-seg-exp bg-emerald-500" style="width: 10%">10% Exp</div>

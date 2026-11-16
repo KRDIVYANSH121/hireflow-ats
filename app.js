@@ -561,7 +561,7 @@
       showToast('Admin controls restricted to Recruiter Admin role');
     }
 
-    const recruiterViews = ['recruiter-studio-view', 'recruiter-pipeline-view', 'workflow-view', 'audit-view'];
+    const recruiterViews = ['recruiter-studio-view', 'recruiter-pipeline-view', 'workflow-view', 'audit-view', 'kanban-view', 'graph-view'];
     if (recruiterViews.includes(targetViewId) && state.currentUser?.role === 'CANDIDATE') {
       targetViewId = 'candidate-jobs-view';
       showToast('Recruiter workspace restricted to Recruiter HR & Admin roles');
@@ -750,6 +750,36 @@
 
     // Hide Gateway
     hideGateway();
+
+    // Synchronize workspace visibility based on role
+    const activeWorkspace = state.currentUser.role === 'CANDIDATE' ? 'candidate' : (state.currentUser.role === 'RECRUITER_ADMIN' ? 'admin' : 'recruiter');
+    if (typeof HireFlowApp !== 'undefined' && HireFlowApp.ui) {
+      HireFlowApp.ui.activeWorkspace = activeWorkspace;
+    }
+    ['recruiter', 'candidate', 'admin'].forEach(ws => {
+      const el = document.getElementById(`workspace-${ws}`);
+      const btn = document.getElementById(`ws-btn-${ws}`);
+      if (el) el.classList.toggle('hidden', ws !== activeWorkspace);
+      if (btn) {
+        if (ws === activeWorkspace) {
+          btn.classList.add('brand-bg', 'shadow-sm');
+          btn.classList.remove('text-slate-400');
+        } else {
+          btn.classList.remove('brand-bg', 'shadow-sm');
+          btn.classList.add('text-slate-400');
+        }
+      }
+    });
+
+    const ribbon = document.getElementById('workflow-ribbon-section');
+    if (ribbon) {
+      ribbon.classList.toggle('hidden', state.currentUser.role === 'CANDIDATE');
+    }
+
+    const recruiterNavs = document.querySelectorAll('nav[aria-label="Recruiter Views"]');
+    recruiterNavs.forEach(nav => {
+      nav.classList.toggle('hidden', state.currentUser.role === 'CANDIDATE');
+    });
 
     // Route to Role Workspace
     if (state.currentUser.role === 'CANDIDATE') {
@@ -2302,6 +2332,43 @@
     }
   }
 
+  function getCandidateFacingStatus(kanbanStage) {
+    let label = 'Submitted';
+    let badgeClass = 'badge-submitted';
+    let color = 'sky';
+
+    if (kanbanStage === 'Sourced' || kanbanStage === 'Applied') {
+      label = 'Submitted';
+      badgeClass = 'badge-submitted';
+      color = 'sky';
+    } else if (kanbanStage === 'AssessmentPending' || kanbanStage === 'Interviewing' || kanbanStage === 'Screening') {
+      label = 'Under Review';
+      badgeClass = 'badge-under-review';
+      color = 'indigo';
+    } else if (kanbanStage === 'OfferExtended') {
+      label = 'Offer Extended';
+      badgeClass = 'badge-offer';
+      color = 'emerald';
+    } else if (kanbanStage === 'Closed' || kanbanStage === 'Completed' || kanbanStage === 'Rejected') {
+      label = 'Completed';
+      badgeClass = 'badge-completed';
+      color = 'slate';
+    }
+
+    return {
+      label,
+      badgeClass,
+      color,
+      status: label,
+      toString() {
+        return this.label;
+      }
+    };
+  }
+  if (typeof window !== 'undefined') {
+    window.getCandidateFacingStatus = getCandidateFacingStatus;
+  }
+
   function renderJobFeed() {
     const container = document.getElementById('jobFeedContainer');
     if (!container) return;
@@ -2416,7 +2483,7 @@
           </div>
           <div>
             ${existingApp
-              ? `<button type="button" class="btn btn-secondary btn-applied" disabled="true">✓ Applied (${existingApp.kanbanStage})</button>`
+              ? `<button type="button" class="btn btn-secondary btn-applied" disabled="true">✓ Applied (${getCandidateFacingStatus(existingApp.kanbanStage).label})</button>`
               : `<button type="button" class="btn btn-primary btn-1click-apply" data-jobid="${job.jobId}">⚡ 1-Click Apply</button>`
             }
           </div>
@@ -2497,7 +2564,7 @@
 
       <div class="detail-actions-row">
         ${existingApp
-          ? `<button type="button" class="btn btn-secondary btn-applied" disabled="true" style="width: 100%;">✓ Applied (${existingApp.kanbanStage})</button>`
+          ? `<button type="button" class="btn btn-secondary btn-applied" disabled="true" style="width: 100%;">✓ Applied (${getCandidateFacingStatus(existingApp.kanbanStage).label})</button>`
           : `<button type="button" class="btn btn-primary btn-gradient btn-detail-apply btn-1click-apply" data-jobid="${job.jobId}">⚡ 1-Click Apply with Living Profile</button>`
         }
       </div>
@@ -2742,8 +2809,9 @@
         ${stepperHtml}
 
         <div class="applied-card-footer">
-          <div class="text-dim" style="font-size: 0.85rem;">
-            Current Status: <strong class="text-neon-cyan">${app.kanbanStage === 'OfferExtended' ? '🎉 Offer Extended' : app.kanbanStage}</strong>
+          <div class="text-dim flex items-center gap-2" style="font-size: 0.85rem;">
+            <span>Current Status:</span>
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${getCandidateFacingStatus(app.kanbanStage).badgeClass}">${getCandidateFacingStatus(app.kanbanStage).label}</span>
           </div>
           <div>
             ${app.kanbanStage === 'OfferExtended'
@@ -4396,8 +4464,40 @@
     setBrandAccent(primaryHex, hoverHex) {
       applyThemeColor(primaryHex);
     },
+    getCandidateFacingStatus(stage) {
+      return getCandidateFacingStatus(stage);
+    },
     switchWorkspace(workspace) {
+      if (state.currentUser?.role === 'CANDIDATE' && workspace !== 'candidate') {
+        showToast('Recruiter and Admin workspaces are restricted to authorized personnel');
+        return;
+      }
       this.ui.activeWorkspace = workspace;
+      ['recruiter', 'candidate', 'admin'].forEach(ws => {
+        const el = document.getElementById(`workspace-${ws}`);
+        const btn = document.getElementById(`ws-btn-${ws}`);
+        if (el) el.classList.toggle('hidden', ws !== workspace);
+        if (btn) {
+          if (ws === workspace) {
+            btn.classList.add('brand-bg', 'shadow-sm');
+            btn.classList.remove('text-slate-400');
+          } else {
+            btn.classList.remove('brand-bg', 'shadow-sm');
+            btn.classList.add('text-slate-400');
+          }
+        }
+      });
+
+      const ribbon = document.getElementById('workflow-ribbon-section');
+      if (ribbon) {
+        ribbon.classList.toggle('hidden', workspace === 'candidate' || state.currentUser?.role === 'CANDIDATE');
+      }
+
+      const recruiterNavs = document.querySelectorAll('nav[aria-label="Recruiter Views"]');
+      recruiterNavs.forEach(nav => {
+        nav.classList.toggle('hidden', workspace === 'candidate' || state.currentUser?.role === 'CANDIDATE');
+      });
+
       const viewMap = {
         candidate: 'candidate-jobs-view',
         recruiter: 'recruiter-pipeline-view',
